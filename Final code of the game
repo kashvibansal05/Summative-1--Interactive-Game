@@ -1,0 +1,130 @@
+from machine import Pin, PWM
+import time
+import neopixel
+from time import sleep
+import random
+
+#initialization
+
+pb = Pin(14, Pin.IN, Pin.PULL_UP) #Setup push button
+
+led_row = [Pin(5, Pin.OUT), Pin(18, Pin.OUT), Pin(19, Pin.OUT), Pin(21, Pin.OUT)] #Setup list for led row
+
+ir20 = Pin(4, Pin.IN) #Setup ir sensors
+ir50 = Pin(22, Pin.IN)
+ir100 = Pin(26, Pin.IN)
+
+green = Pin(23, Pin.OUT) #Setup green led
+
+np = neopixel.NeoPixel(Pin(25), 16) #Setup neopixel
+
+colour = [(191,26,47), (240,6,153), (69,78,158), (1,142,66), (247,208,2)] #Setup list for colours in neopixel
+
+buzzer = PWM(Pin(13)) #Setup buzzer
+buzzer.duty_u16(0)
+
+score = 0 #Set initial score to 0
+
+while True:
+    pb_this = pb.value() #reading value 
+
+    #turning on led when button is pushed and syncing it with a beat to indicate game starting
+    if pb_this == 0:
+        score = 0
+        
+        led_row[0].value(1)
+        buzzer.freq(500)
+        buzzer.duty_u16(10000)
+        sleep(0.2)
+
+        led_row[1].value(1)
+        buzzer.freq(700)
+        sleep(0.2)
+
+        led_row[2].value(1)
+        buzzer.freq(900)
+        sleep(0.2)
+
+        led_row[3].value(1)
+        buzzer.freq(1200)
+        sleep(0.3)
+        buzzer.duty_u16(0)
+
+        for led in led_row:
+            led.value(0)
+            
+    #coding ir sensor with integration of score count, led lighting up and buzzer
+    if score >= 0 and score < 200:
+
+        if ir20.value() == 0:
+            score = score + 20
+            print(score)
+            
+            green.on()
+            buzzer.freq(1000)
+            buzzer.duty_u16(10000)
+            sleep(0.08)
+            buzzer.freq(1500)
+            sleep(0.12)
+            buzzer.duty_u16(0)
+            time.sleep(0.5)
+            green.off()
+
+        if ir50.value() == 0:
+            score = score + 50
+            print(score)
+            
+            green.on()
+            buzzer.freq(1000)
+            buzzer.duty_u16(10000)
+            sleep(0.08)
+            buzzer.freq(1500)
+            sleep(0.12)
+            buzzer.duty_u16(0)
+            time.sleep(0.5)
+            green.off()
+
+        if ir100.value() == 0:
+            score = score + 100
+            print(score)
+
+            green.on()
+            buzzer.freq(1000)
+            buzzer.duty_u16(10000)
+            sleep(0.08)
+            buzzer.freq(1500)
+            sleep(0.12)
+            buzzer.duty_u16(0)
+            time.sleep(0.5)
+            green.off()
+            time.sleep(0.5)
+            
+
+    #neopixel and buzzer upon winning
+    if score >= 200:
+        number = random.randint(0, 4)
+
+        buzzer.duty_u16(10000)
+        buzzer.freq(900)
+        sleep(0.08)
+        buzzer.freq(1200)
+        sleep(0.08)
+        buzzer.freq(1500)
+        sleep(0.1)
+        buzzer.freq(1800)
+        sleep(0.1)
+        buzzer.freq(2200)
+        sleep(0.18)
+        buzzer.duty_u16(0)
+
+        for i in range(0, 16):
+            np[i] = colour[number]
+            time.sleep(0.2)
+            np.write()
+
+        for i in range(15, -1, -1):
+            np[i] = (0, 0, 0)
+            time.sleep(0.1)
+            np.write()
+
+        print("Game over! Press button to restart.")
